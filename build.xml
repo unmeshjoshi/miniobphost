@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<project name="miniobphost" default="package" basedir=".">
+    <property environment="env"/>
+    <property name="build.root" value="${basedir}"/>
+    <property name="src.dir" location="src/main/java"/>
+    <property name="web.dir" location="src/main/webapp"/>
+    <property name="build" location="target/build"/>
+    <property name="build.classes" location="${build}/classes"/>
+    <property name="dist" location="${build}/dist"/>
+    <property name="application.name" value="miniobphost"/>
+    <path id="classpath">
+        <fileset dir="lib">
+            <include name="buildtime/*.jar"/>
+            <include name="runtime/*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="make-build-dir" description="Creates the build directory">
+        <mkdir dir="${build.classes}"/>
+        <mkdir dir="${dist}"/>
+    </target>
+
+    <target name="compile" depends="make-build-dir" description="Compiles the source">
+        <javac target="1.6" source="1.6"
+               srcdir="${src.dir}"
+               destdir="${build.classes}"
+               classpathref="classpath"/>
+    </target>
+
+    <target name="test" depends="compile" description="Run unit tests">
+        <junit>
+
+        </junit>
+    </target>
+
+    <target name="clean" description="Deletes all the build directories.">
+        <delete dir="${build.classes}"/>
+        <delete dir="${dist}"/>
+    </target>
+
+    <target name="package" depends="compile">
+        <war destfile="${dist}/${application.name}.war" webxml="${web.dir}/WEB-INF/web.xml">
+            <lib dir="lib/runtime"/>
+            <fileset dir="${web.dir}">
+                <exclude name="WEB-INF/web.xml"/>
+            </fileset>
+            <classes dir="${build.classes}"/>
+        </war>
+    </target>
+    <target name="startWeblogic">
+        <exec command="/bin/sh" dir=".">
+            <arg path="startWeblogic.sh"/>
+        </exec>
+        <echo message="waiting for server to start"/>
+        <waitfor maxwait="60" maxwaitunit="second" checkevery="10">
+            <socket server="127.0.0.1" port="7001"/>
+        </waitfor>
+    </target>
+    <target name="stopWeblogic">
+        <exec command="/bin/sh" dir=".">
+            <arg path="stopWeblogic.sh"/>
+        </exec>
+    </target>
+    <target name="deploy">
+        <exec command="/bin/sh" dir=".">
+            <arg path="deployapp.sh"/>
+        </exec>
+    </target>
+</project>
